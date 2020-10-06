@@ -44,6 +44,7 @@ export function initAuth() {
 		}
 		const formattedArgs = objectEntries(args)
 			.map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v))
+			.join("&")
 		return {
 			url: `https://github.com/login/oauth/authorize?${formattedArgs}`,
 		}
