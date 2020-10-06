@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "allowJs": false,
+    "sourceMap": true,
+    "outDir": "build/",
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "moduleResolution": "node",
+    "preserveSymlinks": true,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    "forceConsistentCasingInFileNames": true
+  },
+	"include": ["src/**/*.ts"]
+}

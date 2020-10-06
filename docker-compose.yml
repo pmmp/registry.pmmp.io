@@ -1,0 +1,10 @@
+version: "3"
+services:
+  mongo:
+    image: mongo:4
+  app:
+    build: .
+    ports:
+      - 17594:8080
+    links:
+      - mongo:mongo
