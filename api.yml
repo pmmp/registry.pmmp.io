@@ -1,0 +1,117 @@
+openapi: 3.0.3
+info:
+  title: registry.pmmp.io
+  version: 1.0.0
+paths:
+  /auth/redir:
+    get:
+      tags: [auth]
+      summary: Obtain GitHub API redirect path
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    description: URL to redirect user to for GitHub web flow
+  /auth/login:
+    get:
+      tags: [auth]
+      summary: OAuth redirect path from GitHub
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "302":
+          headers:
+            Location:
+              description: "the value of ?frontend in /auth/redir, with ?registry-session set to the new session token"
+              schema:
+                type: string
+  /secret:
+    get:
+      tags: [secret]
+      summary: List the secrets accessible by the user
+      parameters:
+        - name: X-Registry-Session
+          in: header
+          required: true
+      responses:
+        "200":
+          content:
+            aplication/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    owner:
+                      # Name of user or organization that the secret belongs to
+                      type: string
+    put:
+      tags: [secret]
+      summary: Add a secret for the specified organization or user
+      parameters:
+        - name: X-Registry-Session
+          in: header
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                owner:
+                  type: integer
+                  description: The organization or user ID to grant for.
+                description:
+                  type: integer
+                  description: A description associated with the secret.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  owner:
+                    type: string
+                    description: The input owner.
+                  description:
+                    type: string
+                    description: The input owner.
+                  lastUsed:
+                    type: number
+                    description: Unix timestamp of secret creation, in milliseconds.
+                  secret:
+                    type: string
+                    description: The secret generated. Guaranteed to be at most 127 characters.
+    delete:
+      tags: [secret]
+      summary: Add a secret for the specified organization or user
+      parameters:
+        - name: X-Registry-Session
+          in: header
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                secret:
+                  type: string
+                  description: The secret to remove.
+      responses:
+        "204": {}
+

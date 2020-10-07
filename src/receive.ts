@@ -2,6 +2,7 @@ import {Request} from "express"
 import {OctokitResponse} from "@octokit/types"
 import {gh} from "./config"
 import {Token} from "./db"
+import {asyncHandler} from "./util"
 
 interface ReceiveArg {
 	repoId: number
@@ -10,7 +11,7 @@ interface ReceiveArg {
 	artifact: string
 }
 
-export async function receive(req: Request) {
+export const receive = asyncHandler(async (req: Request) => {
 	const secret = req.get("X-Registry-Secret")
 	const arg = req.body as ReceiveArg
 
@@ -27,4 +28,4 @@ export async function receive(req: Request) {
 	}
 
 	return "OK"
-}
+})

@@ -1,0 +1,17 @@
+[gh]
+token = "Generate a GitHub user tokken without any special permissions"
+clientId = "Client ID from OAuth app settings"
+clientSecret = "Client ID from OAuth app settings"
+
+[db]
+host = "mongo" # change to localhost for development setup
+port = 27017
+user = "user"
+pass = "correct horse battery staple"
+db = "db"
+poolSize = 8
+
+[http]
+frontend = "https://plugins.pmmp.io"
+registry = "https://registry.pmmp.io"
+commonKey = "correct horse battery staple" # remember to change this!

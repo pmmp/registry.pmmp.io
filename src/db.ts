@@ -2,7 +2,7 @@ import * as mongoose from "mongoose"
 import {Schema, model} from "mongoose"
 import {config} from "./config"
 
-export const db = mongoose.connect(`mongodb://${config.db.host}:${config.db.port}/${config.db.db}`, {
+mongoose.connect(`mongodb://${config.db.host}:${config.db.port}/${config.db.db}`, {
 	poolSize: config.db.poolSize,
 	useNewUrlParser: true,
 })
