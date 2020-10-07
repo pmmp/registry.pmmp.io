@@ -49,7 +49,7 @@ paths:
       responses:
         "200":
           content:
-            aplication/json:
+            application/json:
               schema:
                 type: array
                 items:
@@ -114,4 +114,244 @@ paths:
                   description: The secret to remove.
       responses:
         "204": {}
+  /builds/recent:
+    get:
+      tags: [build-list]
+      summary: List the builds created in the past 24 hours.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    plugin: {"$ref": "#!/components/schemas/plugin"}
+                    build: {"$ref": "#!/components/schemas/build"}
+  /builds/search:
+    post:
+      tags: [build-list]
+      summary: Search release builds
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: string
+                  required: false
+                  example: pmmp
+                repo:
+                  description: Search builds under a repository in the format USER/REPO
+                  type: string
+                  required: false
+                  example: pmmp/DevTools
+                name:
+                  description: Search plugin name
+                  type: string
+                  required: false
+                  example: DevTools
+                fullText:
+                  description: Full-text search plugin descriptions
+                  type: string
+                  required: false
+                  example: developer tools
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    plugin: {"$ref": "#!/components/schemas/plugin"}
+                    latestBuild: {"$ref": "#!/components/schemas/build"}
+  /review:
+    get:
+      tags: [review]
+      summary: Get the reviews of a plugin
+      parameters:
+        - name: user
+          in: query
+          schema:
+            type: string
+            required: false
+        - name: plugin
+          in: query
+          schema:
+            type: string
+    put:
+      tags: [review]
+      summary: Post a plugin review
+      parameters:
+        - name: X-Registry-Session
+          in: header
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: string
+                  required: false
+                plugin:
+                  type: string
+                score:
+                  type: number
+                content:
+                  type: string
+                  maxLength: 1023 # Hey this is much higher than Twitter's 140 anyway
+  /review/reply:
+    tags: [review]
+    summary: Reply to a plugin review
+
+components:
+  schemas:
+    user:
+      description: Basic information about a GitHub user/organization account
+      type: object
+      properties:
+        login:
+          type: string
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [USER, ORGANIZATION]
+    repo:
+      description: Basic information about a GitHub repository
+      type: object
+      properties:
+        owner: {"$ref": "#!/components/schemas/user"}
+        id:
+          type: integer
+        name:
+          type: string
+        fork:
+          type: boolean
+    plugin:
+      description: Basic information about a plugin
+      type: object
+      properties:
+        name:
+          description: |-
+            The name of the plugin
+
+            - This name matches the value in plugin.yml.
+            - The name of a plugin can never change. A renamed plugin is identified as a totally new one.
+            - The same user is not allowed to have multiple plugins with the same name.
+              Hence, USER + PLUGIN is a unique identifier for the plugin.
+            - If a repository is transferred to another account, the plugin names associated with the old account are not immediately transferred.
+              The user has to explicitly opt-in to transfer the ownership via web interface.
+            - If a repository is deleted, the plugin names associated with the repository are still connected to the user account.
+              The user has to explicitly opt-in to delete the plugin.
+          type: string
+        # For the reasons mentioned above, repo.owner may not be the same as user
+        user: {"$ref": "#!/components/schemas/user"}
+        repo: {"$ref": "#!/components/schemas/repo"}
+        promoted:
+          description: Whether this plugin is promoted to the global plugin list
+          type: boolean
+        downloads:
+          description: Number of unique users downloading any build of this plugin
+          type: number
+    build:
+      description: Basic information about a build
+      type: object
+      properties:
+        commit:
+          description: |-
+            The commit that the build is created from.
+
+            There is only one build created from each commit within a repository
+            (if it is involved in pull requests across multiple repositories, each repository has its own build).
+            Since users cannot fork a repository to the same account,
+            USER + PLUGIN + COMMIT is a unique identifier for a build.
+          type: string
+        version:
+          description: The version in plugin.yml
+          type: string
+        stability:
+          description: |-
+            The stability level of the build
+
+            In descending order of stability,
+            - RELEASE: The build is created from a tagged commit associated with a GitHub release.
+            - PRE_RELEASE: The build is created from a tagged commit associated with a GitHub release marked as "pre-release".
+            - MASTER: The build is created from a commit pushed to the default branch of the repository (merges will not change stability of previous builds).
+            - BLEEDING: The build is created from a commit pushed to a non-default branch of the repository.
+            - FORK: The build is created from a pull request from another fork of this repository.
+
+            Note that deletion of releases, branches and forks does not delete corresponding builds or affect stability levels.
+          type: string
+          enum: [RELEASE, PRE_RELEASE, MASTER, BLEEDING, FORK]
+        downloads:
+          description: Number of unique users downloading this build
+          type: number
+        link:
+          description: Download link URL
+        md5:
+          description: The md5 checksum of the download
+        verified:
+          description: |-
+            Whether a plugin is verified.
+
+            A plugin is verified if it is created with PMMP_REGISTRY_SECRET secret set.
+    command:
+      description: A command found in a plugin
+      type: object
+      properties:
+        name:
+          type: string
+        aliases:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        usage:
+          type: string
+        permission:
+          type: array
+          items:
+            type: string
+    permission:
+      description: A permission registered by a plugin
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parent:
+          type: string
+          required: false
+    review:
+      description: |-
+        A review posted on a plugin
+
+        Reviews may only be posted on pre-releases and releases.
+      type: object
+      properties:
+        author: {"$ref": "#!/components/schemas/user"}
+        score:
+          type: number
+        text:
+          type: string
+        date:
+          type: string
+          format: date-time # ISO8601
+        reply:
+          type: object
+          required: false
+          properties:
+            text:
+              type: string
+            date:
+              type: string
+              format: date-time
 
